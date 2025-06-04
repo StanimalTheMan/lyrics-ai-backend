@@ -56,6 +56,7 @@ public class SpotifyApiService {
         JsonNode items = root.path("tracks").path("items");
 
         for (JsonNode item : items) {
+            System.out.println("item"  + item);
             String trackName = item.path("name").asText();
             System.out.println(trackName);
             // Spotify tracks may have multiple artists, we check if one matches exactly
@@ -67,8 +68,8 @@ public class SpotifyApiService {
                 if (trackName.equalsIgnoreCase(track) && artistName.equalsIgnoreCase(artist)) {
                     // Found exact match
                     System.out.println("here");
-                    return String.format("Track: %s, Artist: %s, Spotify URL: %s",
-                            trackName, artistName, item.path("external_urls").path("spotify").asText());
+                    return String.format("Track: %s, Artist: %s, Spotify URL: %s, %s",
+                            trackName, artistName, item.path("external_urls").path("spotify").asText(), item.path("album").path("images").get(0).path("url"));
                 }
             }
         }
