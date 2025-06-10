@@ -2,6 +2,7 @@ package com.jiggycode;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -23,7 +24,7 @@ public class AiService {
         String userMessage = String.format("Explain the word '%s' in the context of this song lyric: '%s'. Provide a definition, translation (if applicable), and cultural context.", word, context);
 
         Prompt prompt = new Prompt(List.of(
-                new UserMessage(systemMessage),
+                new SystemMessage(systemMessage),
                 new UserMessage(userMessage)
         ));
 
