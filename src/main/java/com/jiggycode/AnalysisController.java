@@ -1,5 +1,7 @@
 package com.jiggycode;
 
+import com.jiggycode.dto.AnalysisResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,11 +16,17 @@ public class AnalysisController {
     }
 
     @PostMapping
-    public ResponseEntity<String> analyze(
+    public ResponseEntity<AnalysisResponse> analyze(
         @RequestBody AnalyzeRequest analyzeRequest
     ) {
-        String result = aiService.analyzeWord(analyzeRequest.getWord(), analyzeRequest.getContext());
-        return ResponseEntity.ok(result);
+        try {
+            String explanation = aiService.analyzeWord(analyzeRequest.getWord(), analyzeRequest.getContext());
+            AnalysisResponse response = new AnalysisResponse(explanation);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new AnalysisResponse("Error analyzing word: " + e.getMessage()));
+        }
     }
 
     public static class AnalyzeRequest {
