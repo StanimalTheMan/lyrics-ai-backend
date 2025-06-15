@@ -18,9 +18,15 @@ public class LyricsService {
 
     public String fetchLyricsFromLrclib(String artist, String track, String album, Integer duration) {
         String baseUrl = "https://lrclib.net/api/get";
+
+        // rid of extra spaces between words and at front/ends to minimize 404s
+        // TODO: look into fuzzy matching so ? is not need for songs e.g. What Is Love? also look into not having to have spaces in whatislove?
+        String normalizedArtist = normalizeInput(artist);
+        String normalizedTrack = normalizeInput(track);
+
         String url = String.format("%s?artist_name=%s&track_name=%s", baseUrl,
-                URLEncoder.encode(artist, StandardCharsets.UTF_8),
-                URLEncoder.encode(track, StandardCharsets.UTF_8)
+                URLEncoder.encode(normalizedArtist, StandardCharsets.UTF_8),
+                URLEncoder.encode(normalizedTrack, StandardCharsets.UTF_8)
         );
 
         if (album != null) {
@@ -50,6 +56,13 @@ public class LyricsService {
         } catch (Exception e) {
             throw new RuntimeException("Error contacting LRC Lib: " + e.getMessage(), e);
         }
+    }
+
+    static String normalizeInput(String input) {
+        if (input == null) return null;
+        input = input.trim();
+        input = input.replaceAll("\\s+", " ");
+        return input;
     }
 
 }
