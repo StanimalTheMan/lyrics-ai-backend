@@ -77,7 +77,8 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/docs",
-                                "/api/songs/details"
+                                "/api/songs/details",
+                                "/api/analysis"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
