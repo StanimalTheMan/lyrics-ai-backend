@@ -1,5 +1,6 @@
-package com.jiggycode;
+package com.jiggycode.controller;
 
+import com.jiggycode.service.LyricsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

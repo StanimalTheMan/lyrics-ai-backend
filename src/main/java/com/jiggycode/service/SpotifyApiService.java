@@ -1,7 +1,8 @@
-package com.jiggycode;
+package com.jiggycode.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jiggycode.SpotifyTokenService;
 import com.jiggycode.dto.TrackInfo;
 import org.springframework.stereotype.Service;
 import java.io.IOException;

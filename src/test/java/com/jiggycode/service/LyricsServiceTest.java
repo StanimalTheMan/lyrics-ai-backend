@@ -1,4 +1,4 @@
-package com.jiggycode;
+package com.jiggycode.service;
 
 import org.junit.jupiter.api.Test;
 

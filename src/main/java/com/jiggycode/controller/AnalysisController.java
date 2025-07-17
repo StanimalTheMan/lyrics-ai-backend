@@ -1,6 +1,7 @@
-package com.jiggycode;
+package com.jiggycode.controller;
 
 import com.jiggycode.dto.AnalysisResponse;
+import com.jiggycode.service.AiService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
