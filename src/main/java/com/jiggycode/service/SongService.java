@@ -25,13 +25,16 @@ public class SongService {
                     try {
                         TrackInfo trackInfo = spotifyApiService.searchExactMatchTrack(title, artist);
                         String lyrics = lyricsScraperService.fetchLyricsFromLrclib(artist, title, null, null);
+                        System.out.println(lyrics);
                         Song newSong = new Song();
                         newSong.setTitle(trackInfo.getTrack());
                         newSong.setArtist(trackInfo.getArtist());
                         newSong.setSpotifyUrl(trackInfo.getSpotifyUrl());
                         newSong.setImageUrl(trackInfo.getImageUrl());
                         newSong.setLyrics(lyrics);
-                        return songRepository.save(newSong); // This must return a Song
+                        Song savedNewSong = songRepository.save(newSong); // This must return a Song
+                        System.out.println(savedNewSong);
+                        return savedNewSong;
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to fetch and save song", e);
                     }

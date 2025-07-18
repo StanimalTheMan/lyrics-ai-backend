@@ -1,9 +1,14 @@
 package com.jiggycode.controller;
 
+import com.jiggycode.request.AuthenticationRequest;
+import com.jiggycode.request.RegisterRequest;
+import com.jiggycode.response.AuthenticationResponse;
 import com.jiggycode.service.AuthenticationService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -14,5 +19,19 @@ public class AuthenticationController {
 
     public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
+    }
+
+    @Operation(summary = "Register a user", description = "Create new user in database")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/register")
+    public void register(@Valid @RequestBody RegisterRequest registerRequest) throws Exception {
+        authenticationService.register(registerRequest);
+    }
+
+    @Operation(summary = "Login a user", description = "submit email & password to authenticate user")
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/login")
+    public AuthenticationResponse login(@Valid @RequestBody AuthenticationRequest authRequest) {
+        return authenticationService.login(authRequest);
     }
 }
