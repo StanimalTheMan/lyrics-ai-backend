@@ -18,4 +18,5 @@ public interface UserSongRepository extends JpaRepository<UserSong, Long> {
     """)
     List<UserSong> findAllByUserFetchSong(User user);
     Optional<UserSong> findByUserAndSong(User user, Song song);
+    Optional<UserSong> findByUserIdAndSongId(Long userId, Long songId);
 }

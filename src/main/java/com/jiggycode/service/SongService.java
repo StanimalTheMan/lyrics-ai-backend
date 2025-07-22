@@ -40,4 +40,10 @@ public class SongService {
                     }
                 });
     }
+
+
+    public Song getSongById(Long id) {
+        return songRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Song not found"));
+    }
 }

@@ -1,10 +1,6 @@
 package com.jiggycode.controller;
-import com.jiggycode.dto.SongDetails;
-import com.jiggycode.dto.TrackInfo;
 import com.jiggycode.entity.Song;
-import com.jiggycode.service.LyricsService;
 import com.jiggycode.service.SongService;
-import com.jiggycode.service.SpotifyApiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +24,16 @@ public class SongController {
             return ResponseEntity.ok(song);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getSongById(@PathVariable Long id) {
+        try {
+            Song song = songService.getSongById(id);
+            return ResponseEntity.ok(song);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }

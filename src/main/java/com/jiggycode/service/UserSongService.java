@@ -8,6 +8,7 @@ import com.jiggycode.repository.UserRepository;
 import com.jiggycode.repository.UserSongRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,5 +67,24 @@ public class UserSongService {
                 .orElseThrow(() -> new Exception("UserSong not found"));
 
         userSongRepository.delete(userSong);
+    }
+
+    @Transactional(readOnly = true)
+    public UserSong findByUserIdAndSongId(Long userId, Long songId) {
+        UserSong userSong= userSongRepository.findByUserIdAndSongId(userId, songId)
+                .orElseThrow(() -> new RuntimeException("UserSong not found"));
+        System.out.println("userSong" + userSong);
+        return userSong;
+    }
+
+    @Transactional
+    public String getLyricsForUserSong(Long userId, Long songId) {
+        UserSong userSong = userSongRepository.findByUserIdAndSongId(userId, songId)
+                .orElseThrow(() -> new RuntimeException("UserSong not found"));
+        if (userSong == null) {
+            throw new RuntimeException("UserSong not found");
+        }
+
+        return userSong.getSong().getLyrics();
     }
 }

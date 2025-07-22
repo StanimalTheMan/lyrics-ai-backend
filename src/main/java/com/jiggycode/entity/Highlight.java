@@ -1,5 +1,6 @@
 package com.jiggycode.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -16,11 +17,15 @@ public class Highlight {
     @Column(nullable = false)
     private int endIndex;
 
+    @Column(nullable = false)
+    private String selectedText;
+
     @Column(columnDefinition = "TEXT")
     private String explanation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_song_id", nullable = false)
+    @JsonIgnore
     private UserSong userSong;
 
     public Highlight() {}
@@ -70,5 +75,13 @@ public class Highlight {
 
     public void setUserSong(UserSong userSong) {
         this.userSong = userSong;
+    }
+
+    public String getSelectedText() {
+        return selectedText;
+    }
+
+    public void setSelectedText(String selectedText) {
+        this.selectedText = selectedText;
     }
 }
