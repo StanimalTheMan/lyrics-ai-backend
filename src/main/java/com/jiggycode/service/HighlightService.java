@@ -21,12 +21,11 @@ public class HighlightService {
     @Transactional(readOnly = true)
     public List<Highlight> findByUserSong(UserSong userSong) {
         if (userSong == null) {
-            System.out.println("findByUserSong called with null userSong!");
+            
             return List.of();
         }
         List<Highlight> highlights = highlightRepository.findByUserSong(userSong);
-        System.out.println("Highlights found: " + highlights.size());
-        highlights.forEach(h -> System.out.println("Highlight explanation: " + h.getExplanation()));
+
         return highlights;
     }
 

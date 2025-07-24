@@ -40,11 +40,12 @@ public class UserSongController {
     public ResponseEntity<?> getUserSongs(@AuthenticationPrincipal UserDetails userDetails) {
         try {
             List<Song> songs = userSongService.getSavedSongsForUser(userDetails.getUsername());
+            
             return ResponseEntity.ok(songs);
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch songs.");
         }
     }

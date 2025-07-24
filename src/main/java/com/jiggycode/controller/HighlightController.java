@@ -31,9 +31,6 @@ public class HighlightController {
     @GetMapping
     public ResponseEntity<?> getHighlights(@PathVariable Long songId, Authentication auth) {
         try {
-            System.out.println("Authentication object: " + auth);
-            System.out.println("Is authenticated? " + (auth != null && auth.isAuthenticated()));
-            System.out.println("Principal class: " + (auth != null ? auth.getPrincipal().getClass().getName() : "null"));
             Object principal = auth.getPrincipal();
             if (!(principal instanceof CustomUserDetails)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

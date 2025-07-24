@@ -73,7 +73,7 @@ public class UserSongService {
     public UserSong findByUserIdAndSongId(Long userId, Long songId) {
         UserSong userSong= userSongRepository.findByUserIdAndSongId(userId, songId)
                 .orElseThrow(() -> new RuntimeException("UserSong not found"));
-        System.out.println("userSong" + userSong);
+        
         return userSong;
     }
 

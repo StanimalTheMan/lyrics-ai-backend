@@ -27,12 +27,6 @@ public class SpotifyTokenService {
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
-    @PostConstruct
-    public void printKeys() {
-//        System.out.println("clientId = " + clientId);
-//        System.out.println("clientSecret = " + clientSecret);
-    }
-
     public String getAccessToken() throws IOException, InterruptedException {
         if (accessToken != null && Instant.now().isBefore(expiryTime)) {
             return accessToken;
