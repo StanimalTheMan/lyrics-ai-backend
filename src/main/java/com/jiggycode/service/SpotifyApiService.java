@@ -26,7 +26,7 @@ public class SpotifyApiService {
         String token = tokenService.getAccessToken();
 
         // Build the Spotify query string with track and artist filters
-        String query = String.format("track:\"%s\" artist:\"%s\"", track, artist);
+        String query = String.format("%s %s", track, artist);
 
         // URL-encode the query so spaces and special chars are handled properly
         String encodedQuery = java.net.URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8);
