@@ -23,7 +23,7 @@ public class SongService {
         return songRepository.findByTitleIgnoreCaseAndArtistIgnoreCase(title, artist)
                 .orElseGet(() -> {
                     try {
-                        TrackInfo trackInfo = spotifyApiService.searchExactMatchTrack(title, artist);
+                        TrackInfo trackInfo = spotifyApiService.searchBestFuzzyMatchTrack(title, artist);
                         String lyrics = lyricsScraperService.fetchLyricsFromLrclib(artist, title, null, null);
                         
                         Song newSong = new Song();

@@ -4,18 +4,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jiggycode.SpotifyTokenService;
 import com.jiggycode.dto.TrackInfo;
+import org.apache.commons.text.similarity.FuzzyScore;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Locale;
 
 @Service
 public class SpotifyApiService {
 
     private final SpotifyTokenService tokenService;
     private final HttpClient httpClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final FuzzyScore fuzzyScore = new FuzzyScore(Locale.ENGLISH);
 
     public SpotifyApiService(SpotifyTokenService tokenService) {
         this.tokenService = tokenService;
@@ -47,21 +51,28 @@ public class SpotifyApiService {
         }
     }
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public TrackInfo searchExactMatchTrack(String track, String artist) throws IOException, InterruptedException {
+    public TrackInfo searchBestFuzzyMatchTrack(String track, String artist) throws IOException, InterruptedException {
         artist = artist.trim().replaceAll("\\r?\\n", "");
         String jsonResponse = searchTracks(track, artist);
         JsonNode root = objectMapper.readTree(jsonResponse);
         JsonNode items = root.path("tracks").path("items");
+
+        TrackInfo bestMatch = null;
+        int highestScore = -1;
 
         for (JsonNode item : items) {
             String trackName = item.path("name").asText();
             JsonNode artists = item.path("artists");
             for (JsonNode artistNode : artists) {
                 String artistName = artistNode.path("name").asText();
-                if (trackName.equalsIgnoreCase(track) && artistName.equalsIgnoreCase(artist)) {
-                    return new TrackInfo(
+
+                int trackScore = fuzzyScore.fuzzyScore(track, trackName);
+                int artistScore = fuzzyScore.fuzzyScore(artist, artistName);
+                int totalScore = trackScore + artistScore;
+
+                if (totalScore > highestScore) {
+                    highestScore = totalScore;
+                    bestMatch = new TrackInfo(
                             trackName,
                             artistName,
                             item.path("external_urls").path("spotify").asText(),
@@ -71,7 +82,7 @@ public class SpotifyApiService {
             }
         }
 
-        return null;
+        return bestMatch;
     }
 
 }
