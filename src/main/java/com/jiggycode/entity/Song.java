@@ -1,6 +1,8 @@
 package com.jiggycode.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -8,19 +10,31 @@ import java.util.List;
 @Entity
 public class Song {
 
+    @Setter
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private long id;
 
+    @Setter
+    @Getter
     private String title;
+    @Setter
+    @Getter
     private String artist;
 
+    @Setter
+    @Getter
     @Lob
     @Column(name = "lyrics", columnDefinition = "TEXT")
     private String lyrics;
 
+    @Setter
+    @Getter
     private String spotifyUrl;
+    @Setter
+    @Getter
     private String imageUrl;
 
     @OneToMany(mappedBy = "song", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -37,51 +51,4 @@ public class Song {
         this.imageUrl = imageUrl;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getArtist() {
-        return artist;
-    }
-
-    public void setArtist(String artist) {
-        this.artist = artist;
-    }
-
-    public String getLyrics() {
-        return lyrics;
-    }
-
-    public void setLyrics(String lyrics) {
-        this.lyrics = lyrics;
-    }
-
-    public String getSpotifyUrl() {
-        return spotifyUrl;
-    }
-
-    public void setSpotifyUrl(String spotifyUrl) {
-        this.spotifyUrl = spotifyUrl;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
 }
