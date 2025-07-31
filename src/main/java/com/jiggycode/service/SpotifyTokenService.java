@@ -1,6 +1,5 @@
-package com.jiggycode;
+package com.jiggycode.service;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
