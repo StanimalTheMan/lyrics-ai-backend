@@ -20,7 +20,7 @@ public class AudioController {
         this.pollyService = pollyService;
     }
 
-    @GetMapping("/pronunciation")
+    @GetMapping("/api/pronunciation")
     public void getPronunciation(@RequestParam String text, HttpServletResponse response) throws Exception {
         InputStream audioStream = pollyService.synthesizeSpeech(text, VoiceId.JOANNA, OutputFormat.MP3);
 
