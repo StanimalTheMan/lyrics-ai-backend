@@ -21,7 +21,7 @@ public class AiService {
         String systemMessage = "You are a helpful assistant that explains the meaning of words in the context of song lyrics.";
 
         String userMessage = String.format(
-                "First, identify and understand the song and its lyrics using this context: '%s'.\n" +
+                "First, identify and understand the song's full lyrics using this context: '%s'.\n" +
                         "Then, explain the meaning of the word '%s' as it is used within those lyrics.\n\n" +
                         "Your response should include:\n" +
                         "- A clear definition of the word\n" +
