@@ -25,6 +25,7 @@ public class AiService {
                         "Then, explain the meaning of the word '%s' as it is used within those lyrics.\n\n" +
                         "Your response should include:\n" +
                         "- A clear definition of the word\n" +
+                        "- Romanization of the selected lyrics\n" +
                         "- A translation if it's a non-English word\n" +
                         "- Cultural or lyrical significance as used in the song",
                 context, word
