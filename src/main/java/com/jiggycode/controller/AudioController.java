@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import software.amazon.awssdk.services.polly.model.OutputFormat;
-import software.amazon.awssdk.services.polly.model.VoiceId;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,7 +21,8 @@ public class AudioController {
 
     @GetMapping("/api/pronunciation")
     public void getPronunciation(@RequestParam String text, HttpServletResponse response) throws Exception {
-        InputStream audioStream = pollyService.synthesizeSpeech(text, VoiceId.JOANNA, OutputFormat.MP3);
+        // Automatically detect language and synthesize speech
+        InputStream audioStream = pollyService.synthesizeSpeech(text, OutputFormat.MP3);
 
         response.setContentType("audio/mpeg");
         try (OutputStream outputStream = response.getOutputStream()) {

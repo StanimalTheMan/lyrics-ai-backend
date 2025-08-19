@@ -133,6 +133,12 @@
 			<version>2.32.24</version>
 		</dependency>
 
+		<!-- amazon comprehend for dynamic language detection -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>comprehend</artifactId>
+			<version>2.32.24</version>
+		</dependency>
 
 	</dependencies>
 
