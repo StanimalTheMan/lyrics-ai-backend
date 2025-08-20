@@ -39,14 +39,20 @@ public class PollyService {
     }
 
     public InputStream synthesizeSpeech(String text, VoiceId voiceId, LanguageCode languageCode, OutputFormat outputFormat) {
+        String ssml = "<speak><prosody rate='80%'>" + text + "</prosody></speak>";
+
         SynthesizeSpeechRequest synthesizeSpeechRequest = SynthesizeSpeechRequest.builder()
-                .text(text)
+                .text(ssml)
+                .textType("ssml")
                 .voiceId(voiceId)
                 .languageCode(languageCode)
                 .outputFormat(outputFormat)
                 .engine("neural")
                 .build();
-        ResponseInputStream<SynthesizeSpeechResponse> synthesizeSpeechResponse = pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+
+        ResponseInputStream<SynthesizeSpeechResponse> synthesizeSpeechResponse =
+                pollyClient.synthesizeSpeech(synthesizeSpeechRequest);
+
         return synthesizeSpeechResponse;
     }
 
