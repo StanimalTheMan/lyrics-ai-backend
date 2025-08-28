@@ -81,7 +81,9 @@ public class SecurityConfig {
                 newUser.setEmail(email);
                 newUser.setFirstName(oAuth2User.getAttribute("given_name"));
                 newUser.setLastName(oAuth2User.getAttribute("family_name"));
-                newUser.setPassword(null);
+                String dummyPassword = new BCryptPasswordEncoder().encode("oauth_dummy_password");
+                newUser.setPassword(dummyPassword);
+
                 newUser.setAuthorities(List.of(new Authority("ROLE_EMPLOYEE")));
                 return userRepository.save(newUser);
             });
