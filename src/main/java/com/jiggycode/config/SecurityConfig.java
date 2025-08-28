@@ -91,8 +91,9 @@ public class SecurityConfig {
             // generate JWT
             String jwtToken = jwtService.generateToken(new HashMap<>(), user);
 
-            response.setContentType("application/json");
-            response.getWriter().write("{\"token\":\"" + jwtToken + "\"}");
+            // Redirect user to frontend with token
+            String redirectUrl = "https://lyrics-ai-frontend.vercel.app/oauth/callback?token=" + jwtToken;
+            response.sendRedirect(redirectUrl);
         };
     }
 
