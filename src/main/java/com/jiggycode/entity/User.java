@@ -28,8 +28,11 @@ public class User implements UserDetails {
     @Column(unique = true, length = 100, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
+
+    @Column(nullable = false)
+    private String provider = "LOCAL"; // values: "LOCAL", "GOOGLE", etc.
 
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
@@ -121,5 +124,13 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 }
