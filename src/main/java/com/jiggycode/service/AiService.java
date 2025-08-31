@@ -29,7 +29,7 @@ public class AiService {
                         "- Romanization of the selected lyrics\n" +
                         "- A translation if it's a non-English word\n" +
                         "- Cultural or lyrical significance as used in the song",
-                context, songTitle, word
+                context, word, songTitle
         );
 
         Prompt prompt = new Prompt(List.of(
