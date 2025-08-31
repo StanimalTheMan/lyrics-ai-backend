@@ -17,18 +17,19 @@ public class AiService {
         chatClient = builder.build();
     }
 
-    public String analyzeWord(String word, String context) {
+    public String analyzeWord(String word, String songTitle, String context) {
         String systemMessage = "You are a helpful assistant that explains the meaning of words in the context of song lyrics.";
 
         String userMessage = String.format(
                 "First, identify and understand the song's full lyrics using this context: '%s'.\n" +
                         "Then, explain the meaning of the word '%s' as it is used within those lyrics.\n\n" +
                         "Your response should include:\n" +
+                        "- Song title: %s\n" +
                         "- A clear definition of the word\n" +
                         "- Romanization of the selected lyrics\n" +
                         "- A translation if it's a non-English word\n" +
                         "- Cultural or lyrical significance as used in the song",
-                context, word
+                context, songTitle, word
         );
 
         Prompt prompt = new Prompt(List.of(

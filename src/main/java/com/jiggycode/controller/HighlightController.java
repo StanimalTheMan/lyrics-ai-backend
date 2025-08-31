@@ -82,6 +82,7 @@ public class HighlightController {
             String lyrics = userSongService.getLyricsForUserSong(userId, songId);
             String explanation = aiService.analyzeWord(
                     highlight.getSelectedText(),
+                    userSong.getSong().getTitle(),
                     lyrics
             );
             highlight.setExplanation(explanation);

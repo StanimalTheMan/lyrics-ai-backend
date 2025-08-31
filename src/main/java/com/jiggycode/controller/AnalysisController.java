@@ -2,6 +2,8 @@ package com.jiggycode.controller;
 
 import com.jiggycode.dto.AnalysisResponse;
 import com.jiggycode.service.AiService;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,7 @@ public class AnalysisController {
         @RequestBody AnalyzeRequest analyzeRequest
     ) {
         try {
-            String explanation = aiService.analyzeWord(analyzeRequest.getWord(), analyzeRequest.getContext());
+            String explanation = aiService.analyzeWord(analyzeRequest.getWord(), analyzeRequest.getTrack(), analyzeRequest.getContext());
             AnalysisResponse response = new AnalysisResponse(explanation);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -30,18 +32,17 @@ public class AnalysisController {
         }
     }
 
+    @Setter
+    @Getter
     public static class AnalyzeRequest {
+        // Getters and setters
         private String word;
         private String context;
+        private String track;
+        private String artist;
 
         // Constructor (optional)
         public AnalyzeRequest() {}
 
-        // Getters and setters
-        public String getWord() { return word; }
-        public void setWord(String word) { this.word = word; }
-
-        public String getContext() { return context; }
-        public void setContext(String context) { this.context = context; }
     }
 }
