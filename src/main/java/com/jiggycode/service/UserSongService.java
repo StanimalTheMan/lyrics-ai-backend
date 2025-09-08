@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,6 +76,13 @@ public class UserSongService {
                 .orElseThrow(() -> new RuntimeException("UserSong not found"));
         
         return userSong;
+    }
+
+    @Transactional(readOnly = true)
+    public long findUserIdByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"))
+                .getId();
     }
 
     @Transactional

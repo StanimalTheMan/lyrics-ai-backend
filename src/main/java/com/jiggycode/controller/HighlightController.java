@@ -9,6 +9,7 @@ import com.jiggycode.service.UserSongService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,12 +61,27 @@ public class HighlightController {
                                           Authentication auth) {
         try {
             Object principal = auth.getPrincipal();
-            if (!(principal instanceof CustomUserDetails)) {
+            if (!((principal instanceof CustomUserDetails) || (principal instanceof OAuth2User))) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "Invalid principal type"));
             }
-            CustomUserDetails userDetails = (CustomUserDetails) principal;
-            Long userId = userDetails.getId();
+            Long userId = 0L;
+
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                userId = userDetails.getId();
+            }
+
+            if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User) {
+                String email = ((org.springframework.security.oauth2.core.user.OAuth2User) principal).getAttribute("email");
+                if (email == null) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("error", "OAuth2 user email not found"));
+                }
+
+                userId = userSongService.findUserIdByEmail(email);
+            }
+
 
             UserSong userSong = userSongService.findByUserIdAndSongId(userId, songId);
             if (userSong == null) {
