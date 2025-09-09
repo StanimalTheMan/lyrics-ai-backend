@@ -79,11 +79,10 @@ public class UserSongService {
     }
 
     @Transactional(readOnly = true)
-    public long findUserIdByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"))
-                .getId();
+    public Optional<Long> findUserIdByEmail(String email) {
+        return userRepository.findByEmail(email).map(User::getId);
     }
+
 
     @Transactional
     public String getLyricsForUserSong(Long userId, Long songId) {

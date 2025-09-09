@@ -8,7 +8,10 @@ import com.jiggycode.service.HighlightService;
 import com.jiggycode.service.UserSongService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,13 +35,7 @@ public class HighlightController {
     @GetMapping
     public ResponseEntity<?> getHighlights(@PathVariable Long songId, Authentication auth) {
         try {
-            Object principal = auth.getPrincipal();
-            if (!(principal instanceof CustomUserDetails)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid principal type"));
-            }
-            CustomUserDetails userDetails = (CustomUserDetails) principal;
-            Long userId = userDetails.getId();
+            Long userId = resolveUserId(auth);
 
             UserSong userSong = userSongService.findByUserIdAndSongId(userId, songId);
             if (userSong == null) {
@@ -48,6 +45,8 @@ public class HighlightController {
 
             List<Highlight> highlights = highlightService.findByUserSong(userSong);
             return ResponseEntity.ok(highlights);
+        } catch (AccessDeniedException | UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -60,28 +59,7 @@ public class HighlightController {
                                           @RequestBody Highlight highlight,
                                           Authentication auth) {
         try {
-            Object principal = auth.getPrincipal();
-            if (!((principal instanceof CustomUserDetails) || (principal instanceof OAuth2User))) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid principal type"));
-            }
-            Long userId = 0L;
-
-            if (principal instanceof CustomUserDetails) {
-                CustomUserDetails userDetails = (CustomUserDetails) principal;
-                userId = userDetails.getId();
-            }
-
-            if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User) {
-                String email = ((org.springframework.security.oauth2.core.user.OAuth2User) principal).getAttribute("email");
-                if (email == null) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                            .body(Map.of("error", "OAuth2 user email not found"));
-                }
-
-                userId = userSongService.findUserIdByEmail(email);
-            }
-
+            Long userId = resolveUserId(auth);
 
             UserSong userSong = userSongService.findByUserIdAndSongId(userId, songId);
             if (userSong == null) {
@@ -93,6 +71,7 @@ public class HighlightController {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Selected text is required"));
             }
+
             highlight.setUserSong(userSong);
 
             String lyrics = userSongService.getLyricsForUserSong(userId, songId);
@@ -105,6 +84,8 @@ public class HighlightController {
 
             Highlight saved = highlightService.saveHighlight(highlight);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (AccessDeniedException | UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -112,4 +93,43 @@ public class HighlightController {
         }
     }
 
+
+    private Long resolveUserId(Authentication auth) {
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new AccessDeniedException("No authentication principal");
+        }
+
+        Object principal = auth.getPrincipal();
+
+        if (principal instanceof CustomUserDetails cud) {
+            return cud.getId();
+        }
+
+        if (principal instanceof OidcUser oidc) {
+            String rawEmail = oidc.getEmail();
+            if (rawEmail == null || rawEmail.isBlank()) {
+                Object v = oidc.getClaims().get("email");
+                rawEmail = (v instanceof String s && !s.isBlank()) ? s : null;
+            }
+            final String email = rawEmail; // effectively final for the lambda
+
+            if (email == null) {
+                throw new AccessDeniedException("OAuth2 user email not found");
+            }
+
+            return userSongService.findUserIdByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found for email: " + email));
+        }
+
+        if (principal instanceof OAuth2User oauth) {
+            Object v = oauth.getAttributes().get("email");
+            String email = (v instanceof String s && !s.isBlank()) ? s : null;
+            if (email == null) throw new AccessDeniedException("OAuth2 user email not found");
+
+            return userSongService.findUserIdByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found for email: " + email));
+        }
+
+        throw new AccessDeniedException("Unsupported principal type: " + principal.getClass().getName());
+    }
 }
