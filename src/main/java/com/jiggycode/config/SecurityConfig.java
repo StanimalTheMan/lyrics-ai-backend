@@ -36,7 +36,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtService jwtService;
 
-    public SecurityConfig(UserRepository userRepository, JwtAuthenticationFilter jwtAuthenticationFilter, JwtService jwtService) {
+    public SecurityConfig(UserRepository userRepository,
+                          JwtAuthenticationFilter jwtAuthenticationFilter,
+                          JwtService jwtService) {
         this.userRepository = userRepository;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtService = jwtService;
@@ -45,8 +47,8 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
-                .map(CustomUserDetails::new)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .map(CustomUserDetails::new) // ensure this maps Authority -> SimpleGrantedAuthority
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
     @Bean
@@ -64,47 +66,50 @@ public class SecurityConfig {
         return (request, response, ex) -> {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"Unauthorized access\"}");
+            response.getWriter().write("{\"error\":\"Unauthorized access\"}");
         };
     }
 
-    // ---------------- OAuth2 Success Handler ----------------
+    // OAuth2 Success Handler — reuse PasswordEncoder bean, guard null email
     @Bean
-    public AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler() {
+    public AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler(PasswordEncoder passwordEncoder) {
         return (request, response, authentication) -> {
             var oAuth2User = (org.springframework.security.oauth2.core.user.OAuth2User) authentication.getPrincipal();
             String email = oAuth2User.getAttribute("email");
+            if (email == null || email.isBlank()) {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"OAuth2 user email not found\"}");
+                return;
+            }
 
-            // find or create user
             User user = userRepository.findByEmail(email).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setEmail(email);
-                newUser.setFirstName(oAuth2User.getAttribute("given_name"));
-                newUser.setLastName(oAuth2User.getAttribute("family_name"));
-                String dummyPassword = new BCryptPasswordEncoder().encode("oauth_dummy_password");
-                newUser.setPassword(dummyPassword);
-
-                newUser.setAuthorities(List.of(new Authority("ROLE_EMPLOYEE")));
-                return userRepository.save(newUser);
+                User u = new User();
+                u.setEmail(email);
+                u.setFirstName(oAuth2User.getAttribute("given_name"));
+                u.setLastName(oAuth2User.getAttribute("family_name"));
+                u.setPassword(passwordEncoder.encode("oauth_dummy_password"));
+                u.setAuthorities(List.of(new Authority("ROLE_EMPLOYEE"))); // ensure ROLE_ prefix
+                return userRepository.save(u);
             });
 
-            // generate JWT
             String jwtToken = jwtService.generateToken(new HashMap<>(), user);
-
-            // Redirect user to frontend with token
             String redirectUrl = "https://lyrics-ai-frontend.vercel.app/oauth/callback?token=" + jwtToken;
             response.sendRedirect(redirectUrl);
         };
     }
 
-    // ---------------- CORS ----------------
+    // CORS
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("https://lyrics-ai-frontend.vercel.app"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        // add localhost for dev if needed
+        config.setAllowedOrigins(List.of(
+                "https://lyrics-ai-frontend.vercel.app"/*, "http://localhost:3000"*/
+        ));
+        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","Origin","X-Requested-With"));
         config.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -112,22 +117,19 @@ public class SecurityConfig {
         return new CorsFilter(source);
     }
 
-    // ---------------- Security Filter Chain ----------------
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors().and()
-                .csrf().disable()
+                .cors(cors -> {}) // use bean above
+                .csrf(csrf -> csrf.disable())
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
+                                "/oauth2/**", "/login/**", "/error",          // <-- add these
                                 "/api/auth/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**",
+                                "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**",
                                 "/docs",
                                 "/api/songs/details",
                                 "/api/analysis",
@@ -137,11 +139,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2AuthenticationSuccessHandler())
+                        .successHandler(oAuth2AuthenticationSuccessHandler(passwordEncoder()))
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }
