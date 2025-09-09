@@ -34,42 +34,82 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+        // 0) Always let preflight through
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final String authHeader = request.getHeader("Authorization");
-        
+        // 1) Skip JWT processing for public / oauth2 endpoints (prevents clashes with Google login)
+        String uri = request.getRequestURI();
+        if (isPublic(uri)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
+        // 2) Pull Bearer token (if absent, just continue; auth rules may 401 later)
+        final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            
             filterChain.doFilter(request, response);
             return;
         }
 
         final String jwt = authHeader.substring(7);
-        final String userEmail = jwtService.extractUsername(jwt);
-        
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-            
+        try {
+            // 3) Extract subject; if invalid/expired, handle cleanly
+            final String userEmail = jwtService.extractUsername(jwt); // may throw if token bad/expired
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-                
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    // Invalid token: clear context and 401 (or just continue—choose one policy)
+                    unauthorized(response, "Invalid JWT");
+                    return;
+                }
             }
+
+            // 4) Continue the chain
+            filterChain.doFilter(request, response);
+
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            unauthorized(response, "JWT expired");
+        } catch (io.jsonwebtoken.SignatureException e) {
+            unauthorized(response, "Invalid JWT signature");
+        } catch (Exception e) {
+            // Catch-all for other parsing errors
+            unauthorized(response, "Invalid JWT");
         }
-        filterChain.doFilter(request, response);
     }
 
+    private boolean isPublic(String uri) {
+        // Make sure these match your security config's permitAll
+        return uri.startsWith("/oauth2/")
+                || uri.startsWith("/login")
+                || uri.startsWith("/error")
+                || uri.startsWith("/actuator/health")
+                || uri.startsWith("/public/");
+        // Add any other non-protected paths here
+    }
+
+    private void unauthorized(HttpServletResponse response, String message) throws IOException {
+        if (!response.isCommitted()) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"" + message + "\"}");
+        }
+        // Do NOT call filterChain after writing the response
+        SecurityContextHolder.clearContext();
+    }
 }
