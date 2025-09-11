@@ -1,10 +1,12 @@
 package com.jiggycode.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "highlights")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Highlight {
 
     @Id
