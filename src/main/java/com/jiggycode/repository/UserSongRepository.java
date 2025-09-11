@@ -17,6 +17,14 @@ public interface UserSongRepository extends JpaRepository<UserSong, Long> {
            WHERE us.user = :user
     """)
     List<UserSong> findAllByUserFetchSong(User user);
+    @Query("""
+         select us
+         from UserSong us
+         join fetch us.song s
+         where us.user.id = :userId
+           and s.id = :songId
+         """)
+    Optional<UserSong> findWithSongByUserIdAndSongId(Long userId, Long songId);
     Optional<UserSong> findByUserAndSong(User user, Song song);
     Optional<UserSong> findByUserIdAndSongId(Long userId, Long songId);
 }

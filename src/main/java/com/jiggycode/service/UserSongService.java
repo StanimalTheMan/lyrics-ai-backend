@@ -72,10 +72,11 @@ public class UserSongService {
 
     @Transactional(readOnly = true)
     public UserSong findByUserIdAndSongId(Long userId, Long songId) {
-        UserSong userSong= userSongRepository.findByUserIdAndSongId(userId, songId)
-                .orElseThrow(() -> new RuntimeException("UserSong not found"));
-        
-        return userSong;
+//        UserSong userSong= userSongRepository.findByUserIdAndSongId(userId, songId)
+//                .orElseThrow(() -> new RuntimeException("UserSong not found"));
+//
+//        return userSong;
+        return userSongRepository.findWithSongByUserIdAndSongId(userId, songId).orElse(null);
     }
 
     @Transactional(readOnly = true)
