@@ -80,7 +80,7 @@ public class SpotifyApiService {
                 }
             }
         }
-
+        System.out.println("BEST MATCH", bestMatch);
         return bestMatch;
     }
 
