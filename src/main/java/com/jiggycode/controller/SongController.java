@@ -22,6 +22,7 @@ public class SongController {
         try {
             System.out.println("DETAILS ENDPOINT HIT");
             Song song = songService.getOrSaveSong(track, artist);
+            System.out.println("song" + song);
             return ResponseEntity.ok(song);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
