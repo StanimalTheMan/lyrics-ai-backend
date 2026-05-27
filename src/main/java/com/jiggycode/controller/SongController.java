@@ -20,6 +20,7 @@ public class SongController {
             @RequestParam String artist
     ) {
         try {
+            System.out.println("DETAILS ENDPOINT HIT");
             Song song = songService.getOrSaveSong(track, artist);
             return ResponseEntity.ok(song);
         } catch (Exception e) {
