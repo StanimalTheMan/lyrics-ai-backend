@@ -25,7 +25,8 @@ public class SongService {
                     try {
                         TrackInfo trackInfo = spotifyApiService.searchBestFuzzyMatchTrack(title, artist);
                         String lyrics = lyricsScraperService.fetchLyricsFromLrclib(artist, title, null, null);
-                        
+                        System.out.println(trackInfo);
+                        System.out.println(lyrics);
                         Song newSong = new Song();
                         newSong.setTitle(trackInfo.getTrack());
                         newSong.setArtist(trackInfo.getArtist());
